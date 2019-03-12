@@ -1,0 +1,5 @@
+black
+isort
+mpy-cross
+mypy
+twine
