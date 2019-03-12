@@ -3,6 +3,23 @@ cpgame
 
 Simple "game" framework for [CircuitPython][] embedded hardware.
 
+[![build status](https://travis-ci.org/jreese/cpgame.svg?branch=master)](https://travis-ci.org/jreese/cpgame)
+[![version](https://img.shields.io/pypi/v/cpgame.svg)](https://pypi.org/project/cpgame)
+[![license](https://img.shields.io/pypi/l/cpgame.svg)](https://github.com/jreese/cpgame/blob/master/LICENSE)
+[![code style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+
+
+Install
+-------
+
+Download the [compiled library][cpgame.mpy] and copy it to your device's directory:
+
+```bash
+$ cp -X cpgame.mpy /Volumes/CIRCUITPY/
+```
+
+[cpgame.mpy]: https://github.com/jreese/cpgame/releases/download/v0.5/cpgame.mpy
+
 
 Overview
 --------
