@@ -12,5 +12,6 @@ deploy:
   api_key:
     secure: RzPMSVHlBCuovIcXkk8apAn1eTvSyIKrVIfCz1zwv5LQ5Q0W/WGyqcNYh+TgfsQpvtOayshBqq2WSg8NKeKEmHSogYQi4BVnwYYPWYYcGn70V9XSq6CfNmmsI9SJd8adDzD7iy7scJZYwBIQH+xPG6Dt5LAhpwwOeNoCr9Yus+TR3E3bygr8GHrJkiDhb2Pp3f1uT5FKyJn7KuscdAD3bjiqBwNs68OaWKLWE6KrrFW09ols+eATjP8AgBewg4SttJ3zK6tdL8KAdK9qDC6OxvEI79i1pQEtxVDiDO2CFxolxy4d6Xe1gDYh58cyJNhH+/fpStNlgEO148kS446cuhe5Q3svKMXGD2RN4lpGBMkA5SM/dAK/LU2Tpx/uQrBQLXSdCncM86Py92r57bmnmYZZSygRtAmld0QSIY4NuyYuN5789D/gU3+h1GJ7t/EJcQ/Lo3eWO1oBTtNq2MYmKevTfVxDtMyiTaJvM08cPiFNP7r1m0cf2rVSYYAA+qbGr8pNz2QRXMGVVpAmGyp3ZGlyBMeF6vQOaubLPQYezpMurlTlcLYTiGrGNsFAXdOtZhZwN92e14c1tQmTkxzslDt86c9v918DMeS6phRvGh3L42rz+Vy+VT6o8y1mSOoOKRTk5C+PqFkrMACi4YsgCzeSV+weJoLSgTmo/1qC66s=
   file: cpgame.mpy
+  skip_cleanup: true
   on:
-    repo: jreese/cpgame
+    tags: true
