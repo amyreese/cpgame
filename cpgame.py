@@ -33,6 +33,7 @@ __version__ = "0.5"
 
 import array
 import math
+import re
 import time
 
 import board
@@ -46,6 +47,8 @@ try:
 except ImportError:
     pass
 
+ANALOG_RE = re.compile(r"(A\d+)")
+DIGITAL_RE = re.compile(r"(D\d+|BUTTON_)")
 
 # External constants
 
@@ -55,8 +58,9 @@ PROPOGATE = object()
 
 # Internal constants
 
-DIGITALIO = [board.BUTTON_A, board.BUTTON_B]
-TOUCHIO = [board.A1, board.A2, board.A3, board.A4, board.A5, board.A6, board.A7]
+PINS = sorted(dir(board))
+DIGITALIO = [getattr(board, pin) for pin in PINS if DIGITAL_RE.match(pin)]
+TOUCHIO = [getattr(board, pin) for pin in PINS if ANALOG_RE.match(pin)]
 SAMPLERATE = 8000  # recommended
 
 AUDIO = AudioOut(board.A0)
