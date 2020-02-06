@@ -1,3 +1,6 @@
+cpgame.mpy: cpgame.py
+	python3 -m mpy_cross cpgame.py
+
 src := cpgame.py setup.py examples/
 
 setup:
@@ -20,9 +23,6 @@ lint:
 release: lint clean
 	python3 setup.py sdist
 	python3 -m twine upload dist/*
-
-cpgame.mpy:
-	python3 -m mpy_cross cpgame.py
 
 clean:
 	rm -rf build dist README MANIFEST cpgame.egg-info cpgame.mpy
