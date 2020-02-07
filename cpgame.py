@@ -32,6 +32,7 @@ __author__ = "John Reese"
 __version__ = "0.5"
 
 import array
+import collections
 import math
 import re
 import time
@@ -40,6 +41,7 @@ import board
 import gamepad
 from audioio import AudioOut, RawSample
 from digitalio import DigitalInOut, Direction, Pull
+from gamepadshift import GamePadShift
 from touchio import TouchIn
 
 try:
@@ -62,6 +64,9 @@ PINS = sorted(dir(board))
 DIGITALIO = [getattr(board, pin) for pin in PINS if DIGITAL_RE.match(pin)]
 TOUCHIO = [getattr(board, pin) for pin in PINS if ANALOG_RE.match(pin)]
 SAMPLERATE = 8000  # recommended
+
+GAMEPAD = collections.namedtuple("GamePad", ["A", "B", "C", "D", "E", "F", "G", "H"])(1, 2, 4, 8, 16, 32, 64, 128)
+GAMEPADSHIFT = None
 
 AUDIO = AudioOut(board.A0)
 SPEAKER = DigitalInOut(board.SPEAKER_ENABLE)
@@ -120,11 +125,20 @@ def cancel(*fns):
 
 def on(*buttons, fn=None, action=DOWN):
     # type: (Any, Callable, int) -> Callable
-    global GAMEPAD
+    global GAMEPADSHIFT
 
     for button in buttons:
         if button not in BUTTONS:
-            if button in DIGITALIO:
+            if button in GAMEPAD:
+                if not GAMEPADSHIFT:
+                    GAMEPADSHIFT = GamePadShift(
+                        board.BUTTON_CLOCK,
+                        board.BUTTON_OUT,
+                        board.BUTTON_LATCH,
+                    )
+                continue
+
+            elif button in DIGITALIO:
                 dio = DigitalInOut(button)
                 dio.direction = Direction.INPUT
                 dio.pull = Pull.DOWN
@@ -132,6 +146,7 @@ def on(*buttons, fn=None, action=DOWN):
                 dio = TouchIn(button)
             else:
                 print("unknown button {}".format(button))
+
             BUTTONS.append(button)
             DIOS.append(dio)
 
@@ -225,6 +240,8 @@ class Gamepad:
         self.pressed = []
 
     def __call__(self, now):
+        gp_down = GAMEPADSHIFT.get_pressed()
+        print(gp_down)
         down = tuple(button for button, dio in zip(BUTTONS, DIOS) if dio.value)
         if down != self.down:
             self.down = down
