@@ -51,6 +51,7 @@ except ImportError:
 
 ANALOG_RE = re.compile(r"(A\d+)")
 DIGITAL_RE = re.compile(r"(D\d+|BUTTON_)")
+JOYSTICK_RE = re.compile(r"JOYSTICK_(.+)")
 
 # External constants
 
@@ -61,11 +62,23 @@ PROPOGATE = object()
 # Internal constants
 
 PINS = sorted(dir(board))
-DIGITALIO = [getattr(board, pin) for pin in PINS if DIGITAL_RE.match(pin)]
-TOUCHIO = [getattr(board, pin) for pin in PINS if ANALOG_RE.match(pin)]
+DIGITALIO = []
+TOUCHIO = []
+JOYSTICK = {}
+for name in PINS:
+    pin = getattr(board, name)
+    if ANALOG_RE.match(name):
+        TOUCHIO.append(pin)
+    if DIGITAL_RE.match(name):
+        DIGITALIO.append(pin)
+
+    match = JOYSTICK_RE.match(name)
+    if match:
+        JOYSTICK[match.group(1)] = pin
+
 SAMPLERATE = 8000  # recommended
 
-GAMEPAD = collections.namedtuple("GamePad", ["A", "B", "C", "D", "E", "F", "G", "H"])(1, 2, 4, 8, 16, 32, 64, 128)
+GAMEPAD = collections.namedtuple("GamePad", ["A", "B", "START", "SELECT", "X", "Y", "Z", "R"])(2, 1, 4, 8, 16, 32, 64, 128)
 GAMEPADSHIFT = None
 
 AUDIO = AudioOut(board.A0)
@@ -131,11 +144,16 @@ def on(*buttons, fn=None, action=DOWN):
         if button not in BUTTONS:
             if button in GAMEPAD:
                 if not GAMEPADSHIFT:
-                    GAMEPADSHIFT = GamePadShift(
-                        board.BUTTON_CLOCK,
-                        board.BUTTON_OUT,
-                        board.BUTTON_LATCH,
-                    )
+                    clock = DigitalInOut(board.BUTTON_CLOCK)
+                    clock.direction = Direction.INPUT
+                    clock.pull = Pull.DOWN
+                    data = DigitalInOut(board.BUTTON_OUT)
+                    data.direction = Direction.INPUT
+                    data.pull = Pull.DOWN
+                    latch = DigitalInOut(board.BUTTON_LATCH)
+                    latch.direction = Direction.INPUT
+                    latch.pull = Pull.DOWN
+                    GAMEPADSHIFT = GamePadShift(clock, data, latch)
                 continue
 
             elif button in DIGITALIO:
@@ -236,13 +254,15 @@ def start(fn=None):
 
 class Gamepad:
     def __init__(self):
-        self.down = ()
+        self.down = []
         self.pressed = []
 
     def __call__(self, now):
-        gp_down = GAMEPADSHIFT.get_pressed()
-        print(gp_down)
-        down = tuple(button for button, dio in zip(BUTTONS, DIOS) if dio.value)
+        gp_value = GAMEPADSHIFT.get_pressed()
+        gp_down = [button for button in GAMEPAD if gp_value & button != 0]
+
+        down = [button for button, dio in zip(BUTTONS, DIOS) if dio.value]
+        down += gp_down
         if down != self.down:
             self.down = down
             return
