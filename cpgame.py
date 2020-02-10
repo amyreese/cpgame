@@ -39,6 +39,7 @@ import time
 
 import board
 import gamepad
+from analogio import AnalogIn
 from audioio import AudioOut, RawSample
 from digitalio import DigitalInOut, Direction, Pull
 from gamepadshift import GamePadShift
@@ -74,7 +75,7 @@ for name in PINS:
 
     match = JOYSTICK_RE.match(name)
     if match:
-        JOYSTICK[match.group(1)] = pin
+        JOYSTICK[match.group(1)] = AnalogIn(pin)
 
 SAMPLERATE = 8000  # recommended
 
@@ -214,8 +215,7 @@ def stop():
 
 def start(fn=None):
     # type: (Optional[Callable]) -> None
-    if PRESSES:
-        every(0.02)(Gamepad())
+    every(0.02)(Gamepad())
 
     if fn:
         at(0, fn)
@@ -251,13 +251,43 @@ def start(fn=None):
             else:
                 break
 
+class Joystick:
+    def __init__(self, deadzone=0.1, low=0, high=2**16):
+        Joystick.instance = self
+        self.deadzone = deadzone
+        self.low = low
+        self.high = high
+        self.range = high - low
+        for name in JOYSTICK:
+            self.set(name, 0)
+
+    def set(self, name, value):
+        if value <= self.low:
+            value = -1.0
+        elif value >= self.high:
+            value = 1.0
+        else:
+            value = ((value * 2.0) / self.range) - 1.0
+            if abs(value) < self.deadzone:
+                value = 0.0
+            elif value >= 0.99:
+                value = 1.0
+            elif value <= -0.99:
+                value = -1.0
+
+        setattr(self, name, value)
 
 class Gamepad:
     def __init__(self):
+        Gamepad.instance = self
         self.down = []
         self.pressed = []
+        self.joystick = Joystick()
 
     def __call__(self, now):
+        for name, pin in JOYSTICK.items():
+            self.joystick.set(name, pin.value)
+
         gp_value = GAMEPADSHIFT.get_pressed()
         gp_down = [button for button in GAMEPAD if gp_value & button != 0]
 
