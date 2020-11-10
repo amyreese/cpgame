@@ -17,8 +17,8 @@ black:
 
 lint:
 	mypy $(src)
-	black --check $(src)
 	isort --diff --recursive $(src)
+	black --check $(src)
 
 release: lint clean
 	python3 setup.py sdist
